@@ -28,9 +28,9 @@
     function init() {
         var stats, scene, camera, webGLRenderer, orbitControls, cloud, geom, attractor;
 
-        var width = 16;
-        var height = 16;
-        var depth = 16;
+        var width = 20;
+        var height = 20;
+        var depth = 20;
         var spacing = 16;
 
         stats = initStats();
@@ -46,9 +46,9 @@
         webGLRenderer.setClearColor(new THREE.Color(0x000000, 1.0));
         webGLRenderer.setSize(window.innerWidth, window.innerHeight);
 
-        camera.position.x = 0;
+        camera.position.x = 20;
         camera.position.y = 0;
-        camera.position.z = 1600;
+        camera.position.z = 300;
 
         document.getElementById("WebGL-output").appendChild(webGLRenderer.domElement);
 
@@ -122,7 +122,7 @@
                 attractorForce = geom.vertices[i].clone();
                 attractorForce.sub(attractor);
                 attractorForce.normalize();
-                attractorForce.multiplyScalar(0.2);
+                attractorForce.multiplyScalar(0.03);
 //                console.log(attractorForce);
 
 
