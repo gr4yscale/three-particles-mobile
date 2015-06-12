@@ -1,0 +1,168 @@
+
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Particle tests</title>
+    <script type="text/javascript" src="three.js"></script>
+
+    <script type="text/javascript" src="stats.js"></script>
+    <script type="text/javascript" src="dat.gui.js"></script>
+    <script type="text/javascript" src="OrbitControls.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000000;
+        }
+    </style>
+</head>
+<body>
+
+<div id="Stats-output"></div>
+<div id="WebGL-output"></div>
+
+<script type="text/javascript">
+
+    function init() {
+        var stats, scene, camera, webGLRenderer, orbitControls, cloud, geom, attractor;
+
+        var width = 60;
+        var height = 60;
+        var depth = 60;
+        var spacing = 20;
+
+        stats = initStats();
+
+        scene = new THREE.Scene();
+
+        camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 10000);
+
+        orbitControls = new THREE.OrbitControls( camera );
+        orbitControls.damping = 0.2;
+
+        webGLRenderer = new THREE.WebGLRenderer();
+        webGLRenderer.setClearColor(new THREE.Color(0x000000, 1.0));
+        webGLRenderer.setSize(window.innerWidth, window.innerHeight);
+
+        camera.position.x = 0;
+        camera.position.y = 0;
+        camera.position.z = 1600;
+
+        document.getElementById("WebGL-output").appendChild(webGLRenderer.domElement);
+
+        var controls = new function () {
+
+        };
+
+        var gui = new dat.GUI();
+
+//        attractor = new THREE.Vector3(Math.random() * width, Math.random() * height, Math.random() * depth);
+//        attractor = new THREE.Vector3(400,400,400);
+        attractor = new THREE.Vector3(width/2, height/2, depth/2);
+
+        createPointCloud();
+        render();
+
+        function createPointCloud() {
+
+            geom = new THREE.Geometry();
+
+            var material = new THREE.PointCloudMaterial({
+                size: 1,
+                opacity: 0.2
+            });
+
+            var u, v;
+
+            for (var j = 0; j < width; j++) {
+                for (var i = 0; i < height; i++) {
+                    for (var z = 0; z < depth; z++) {
+                        var vertex = new THREE.Vector3();
+                        u = (j / width);
+                        v = (i / height);
+
+                        vertex.x = (u - 0.5) * width * spacing;
+                        vertex.y = (v - 0.5) * height * spacing;
+                        vertex.z = ((z/depth) - 0.5) * depth * spacing;
+
+                        vertex.velocity = new THREE.Vector3(0,0,0);
+
+                        geom.vertices.push(vertex);
+                    }
+                }
+            }
+
+            cloud = new THREE.PointCloud(geom, material);
+            cloud.sortParticles = true;
+            scene.add(cloud);
+        }
+
+        var step = 0;
+        var x, y, z;
+        var attractorForce;
+        var mag;
+        var currentVerticeVector;
+
+        function render() {
+
+            step += 0.1;
+            stats.update();
+
+
+            cloud.rotation.y += 0.006;
+//            cloud.rotation.y += 0.01;
+//
+            for (var i = 0; i < (width * height * depth); i++) {
+                x = geom.vertices[i].x;
+                y = geom.vertices[i].y;
+                z = geom.vertices[i].z;
+
+                attractorForce = geom.vertices[i].clone();
+                attractorForce.sub(attractor);
+                attractorForce.normalize();
+                attractorForce.multiplyScalar(0.2);
+//                console.log(attractorForce);
+
+
+//                var m = 6.6 / (attractorForce.length() * attractorForce.length());
+
+
+                geom.vertices[i].velocity.add(attractorForce);
+
+                geom.vertices[i].x += geom.vertices[i].velocity.x * -0.025;
+                geom.vertices[i].y += geom.vertices[i].velocity.y * -0.125;
+                geom.vertices[i].z += geom.vertices[i].velocity.z * -0.825;
+
+//                console.log(geom.vertices[i].x);
+//
+//                geom.vertices[i].x = (Math.sqrt(geom.vertices[i].y * geom.vertices[i].x));
+
+//                geom.vertices[i].x = (Math.sin(step+(i*0.1)) * (geom.vertices[i].y * 0.55));
+
+            }
+
+            geom.verticesNeedUpdate = true;
+
+
+            requestAnimationFrame(render);
+            webGLRenderer.render(scene, camera);
+        }
+
+        function initStats() {
+
+            var stats = new Stats();
+            stats.setMode(0); // 0: fps, 1: ms
+            stats.domElement.style.position = 'absolute';
+            stats.domElement.style.left = '0px';
+            stats.domElement.style.top = '0px';
+            document.getElementById("Stats-output").appendChild(stats.domElement);
+            return stats;
+        }
+
+    }
+    window.onload = init;
+</script>
+</body>
+</html>
